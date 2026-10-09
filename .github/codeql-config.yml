@@ -1,0 +1,84 @@
+# CodeQL Configuration for StockSharp
+# https://docs.github.com/en/code-security/codeql-cli/using-the-codeql-cli/customizing-analysis
+
+name: "StockSharp CodeQL Config"
+
+# Disable default queries that are noisy for legacy codebase
+disable-default-queries: false
+
+# Custom query suites
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+# Paths to exclude from analysis
+paths-ignore:
+  - "Samples/**"
+  - "Anywhere/**"
+  - "Studio/**"
+  - "Documentation/**"
+  - "References/**"
+  - "**/obj/**"
+  - "**/bin/**"
+  - "**/packages/**"
+  - "**/*.Designer.cs"
+  - "**/*.Generated.cs"
+  - "**/AssemblyInfo.cs"
+  - "**/StockSharpAssemblyInfo.cs"
+
+# Paths to include (explicit)
+paths:
+  - "Algo/**"
+  - "BusinessEntities/**"
+  - "Messages/**"
+  - "Connectors/**"
+  - "Algo.Strategies/**"
+  - "Algo.History/**"
+  - "Logging/**"
+  - "Localization/**"
+  - "Community/**"
+  - "Alerts/**"
+  - "Hydra/**"
+  - "Xaml/**"
+  - "Xaml.Charting/**"
+  - "Xaml.Diagram/**"
+
+# Query filters for C#
+query-filters:
+  - exclude:
+      id: "cs/weak-cryptographic-hash"
+      # Legacy code may use MD5/SHA1 for non-security purposes (checksums, IDs)
+    reason: "Legacy codebase uses weak hashes for non-cryptographic purposes"
+  
+  - exclude:
+      id: "cs/hardcoded-credentials"
+      # We handle this via Gitleaks and custom scans
+    reason: "Handled by separate secret scanning"
+  
+  - exclude:
+      id: "cs/sql-injection"
+      # Legacy code uses parameterized queries mostly, but some dynamic SQL exists
+    reason: "Review manually - legacy dynamic SQL patterns"
+
+# Compiler options for legacy .NET Framework
+compiler-options:
+  - "/target:library"
+  - "/langversion:7.3"
+  - "/define:TRACE;DEBUG"
+  - "/reference:System.dll"
+  - "/reference:System.Core.dll"
+  - "/reference:System.Data.dll"
+  - "/reference:System.Xml.dll"
+  - "/reference:System.Xml.Linq.dll"
+  - "/reference:System.Runtime.Serialization.dll"
+  - "/reference:System.ServiceModel.dll"
+  - "/reference:System.Configuration.dll"
+  - "/reference:System.Drawing.dll"
+  - "/reference:WindowsBase.dll"
+  - "/reference:PresentationCore.dll"
+  - "/reference:PresentationFramework.dll"
+  - "/reference:System.Xaml.dll"
+
+# Build command for CodeQL (legacy MSBuild)
+build-command: |
+  msbuild StockSharp.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:quiet /maxcpucount

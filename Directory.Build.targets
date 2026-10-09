@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <!--
+    Directory.Build.targets - Centralized build targets for StockSharp
+    This file is automatically imported by all .csproj files in subdirectories.
+    It enables NuGet package locking for reproducible builds.
+  -->
+
+  <!-- Enable package locking for SDK-style projects -->
+  <PropertyGroup>
+    <EnablePackageLockFile>true</EnablePackageLockFile>
+    <PackageLockFilePath>$(MSBuildThisFileDirectory)packages.lock.json</PackageLockFilePath>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <RestoreLockedMode Condition="'$(CI)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true'">true</RestoreLockedMode>
+  </PropertyGroup>
+
+  <!-- Centralized package versions for common dependencies -->
+  <ItemGroup Condition="'$(MSBuildProjectExtension)' == '.csproj' And '$(ProjectType)' != 'Test'">
+    <PackageVersion Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageVersion Include="NLog" Version="5.2.8" />
+    <PackageVersion Include="System.ValueTuple" Version="4.5.0" />
+    <PackageVersion Include="System.Memory" Version="4.5.5" />
+    <PackageVersion Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
+  <!-- Test project package versions -->
+  <ItemGroup Condition="'$(ProjectType)' == 'Test' Or $(MSBuildProjectName.Contains('Test'))">
+    <PackageVersion Include="MSTest.TestFramework" Version="3.1.1" />
+    <PackageVersion Include="MSTest.TestAdapter" Version="3.1.1" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageVersion Include="Moq" Version="4.20.70" />
+    <PackageVersion Include="FluentAssertions" Version="6.12.0" />
+    <PackageVersion Include="xunit" Version="2.6.2" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.4" />
+  </ItemGroup>
+
+  <!-- Security: Disable binary formatter serialization -->
+  <PropertyGroup>
+    <EnableUnsafeBinaryFormatterSerialization>false</EnableUnsafeBinaryFormatterSerialization>
+  </PropertyGroup>
+
+  <!-- Security: Enable nullable reference types for new projects -->
+  <PropertyGroup Condition="'$(TargetFramework)' != '' And '$(TargetFramework)' != 'net40' And '$(TargetFramework)' != 'net45' And '$(TargetFramework)' != 'net46' And '$(TargetFramework)' != 'net47'">
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Deterministic builds -->
+  <PropertyGroup>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true' Or '$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <!-- Embed source link for debugging -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- SourceLink for NuGet packages -->
+  <ItemGroup Condition="'$(PublishRepositoryUrl)' == 'true'">
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
+  </ItemGroup>
+
+</Project>

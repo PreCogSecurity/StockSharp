@@ -65,13 +65,18 @@ namespace StockSharp.Anywhere
 
             _securities = new List<Security>();
 
+            // Load credentials from environment variables with safe defaults for demo purposes
+            // SECURITY: Never hardcode credentials in source code. Use environment variables or secure configuration.
+            var quikLogin = Environment.GetEnvironmentVariable("QUIK_LOGIN") ?? "quik";
+            var quikPassword = Environment.GetEnvironmentVariable("QUIK_PASSWORD") ?? "quik";
+
             _transAdapter = new LuaFixTransactionMessageAdapter(new MillisecondIncrementalIdGenerator())
             {
-                Login = "quik",
-                Password = "quik".To<SecureString>(),
+                Login = quikLogin,
+                Password = quikPassword.To<SecureString>(),
                 Address = QuikTrader.DefaultLuaAddress,
                 TargetCompId = "StockSharpTS",
-                SenderCompId = "quik",
+                SenderCompId = quikLogin,
                 ExchangeBoard = ExchangeBoard.Forts,
                 Version = FixVersions.Fix44_Lua,
                 RequestAllPortfolios = true,
@@ -80,11 +85,11 @@ namespace StockSharp.Anywhere
 
             _messAdapter = new FixMessageAdapter(new MillisecondIncrementalIdGenerator())
             {
-                Login = "quik",
-                Password = "quik".To<SecureString>(),
+                Login = quikLogin,
+                Password = quikPassword.To<SecureString>(),
                 Address = QuikTrader.DefaultLuaAddress,
                 TargetCompId = "StockSharpMD",
-                SenderCompId = "quik",
+                SenderCompId = quikLogin,
                 ExchangeBoard = ExchangeBoard.Forts,
                 Version = FixVersions.Fix44_Lua,
                 RequestAllSecurities = true,

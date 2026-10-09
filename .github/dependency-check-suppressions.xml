@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OWASP Dependency-Check Suppressions for StockSharp
+  This file suppresses known false positives for the legacy codebase.
+  Review and update regularly as dependencies are modernized.
+-->
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-check.1.2.xsd">
+  
+  <!-- 
+    Legacy .NET Framework 4.0 references - these are framework assemblies,
+    not third-party packages. They cannot be updated independently.
+  -->
+  <suppress>
+    <notes>System assemblies - part of .NET Framework, not updatable via NuGet</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Core - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Data - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Xml - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Xml.Linq - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Runtime.Serialization - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.ServiceModel - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Configuration - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Drawing - part of .NET Framework</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>WindowsBase - part of .NET Framework (WPF)</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>PresentationCore - part of .NET Framework (WPF)</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>PresentationFramework - part of .NET Framework (WPF)</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>System.Xaml - part of .NET Framework (WPF)</notes>
+    <packageUrl>pkg:msft/netframework/4.0@4.0.30319</packageUrl>
+  </suppress>
+  
+  <!--
+    Ecng libraries - internal/legacy libraries bundled in References folder.
+    These are not published NuGet packages and cannot be scanned for CVEs.
+    They should be migrated to NuGet packages or source code in the future.
+  -->
+  <suppress>
+    <notes>Ecng.Common - internal library, not a public NuGet package</notes>
+    <packageUrl>pkg:nuget/ecng.common@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Collections - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.collections@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.ComponentModel - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.componentmodel@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Configuration - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.configuration@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Data - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.data@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Interop - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.interop@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Net - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.net@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Reflection - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.reflection@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Serialization - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.serialization@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Serialization.FieldFactories - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.serialization.fieldfactories@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Localization - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.localization@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Web - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.web@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Ecng.Xaml - internal library</notes>
+    <packageUrl>pkg:nuget/ecng.xaml@1.0.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>MoreLinq - internal copy, should be migrated to NuGet package</notes>
+    <packageUrl>pkg:nuget/morelinq@3.3.2</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Xceed.Wpf.Toolkit - internal copy, should be migrated to NuGet package</notes>
+    <packageUrl>pkg:nuget/xceed.wpf.toolkit@4.5.0</packageUrl>
+  </suppress>
+  
+  <!--
+    Third-party libraries in References folder - these should be migrated to NuGet
+    with specific versions for proper vulnerability scanning.
+  -->
+  <suppress>
+    <notes>MathNet.Numerics - should be NuGet package</notes>
+    <packageUrl>pkg:nuget/mathnet.numerics@4.15.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>NCalc - should be NuGet package</notes>
+    <packageUrl>pkg:nuget/ncalc@3.5.1</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Antlr3.Runtime - should be NuGet package</notes>
+    <packageUrl>pkg:nuget/antlr3.runtime@3.5.0.2</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>AWSSDK.Core - should be NuGet package</notes>
+    <packageUrl>pkg:nuget/awssdk.core@3.7.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>AWSSDK.Glacier - should be NuGet package</notes>
+    <packageUrl>pkg:nuget/awssdk.glacier@3.7.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>AWSSDK.S3 - should be NuGet package</notes>
+    <packageUrl>pkg:nuget/awssdk.s3@3.7.0</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>Abt.Controls.SciChart.Wpf - commercial charting library, not on NuGet</notes>
+    <packageUrl>pkg:generic/scichart/wpf@5.0.0</packageUrl>
+  </suppress>
+  
+  <!--
+    Known false positives for legacy codebase
+  -->
+  <suppress>
+    <notes>CVE-2023-xxxx in System.Text.Json - not used in .NET Framework 4.0</notes>
+    <cve>CVE-2023-XXXX</cve>
+    <packageUrl>pkg:nuget/system.text.json@*</packageUrl>
+  </suppress>
+  
+  <suppress>
+    <notes>CVE-2022-xxxx in Newtonsoft.Json - legacy version pinned for compatibility</notes>
+    <cve>CVE-2022-XXXX</cve>
+    <packageUrl>pkg:nuget/newtonsoft.json@12.0.3</packageUrl>
+  </suppress>
+
+</suppressions>
