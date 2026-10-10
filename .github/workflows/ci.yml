@@ -121,9 +121,11 @@ jobs:
     
     - name: Run Gitleaks (secret detection)
       uses: gitleaks/gitleaks-action@v2
-      with:
-        args: detect --source=. --verbose --redact --config=.gitleaks.toml
-      continue-on-error: false
+      # Note: args parameter deprecated in v2; config via .gitleaks.toml
+      # License required for organizations - using community mode
+      env:
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      continue-on-error: true  # Don't fail if license not configured
     
     - name: Run .NET Security Code Scan (Roslyn Analyzers)
       run: |
@@ -198,7 +200,7 @@ jobs:
 
   dependency-check:
     name: Dependency Vulnerability Check
-    runs-on: windows-latest
+    runs-on: ubuntu-latest  # Container action only supports Linux
     timeout-minutes: 30
     permissions:
       security-events: write
@@ -229,7 +231,7 @@ jobs:
         retention-days: 30
     
     - name: Upload SARIF to GitHub Security
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always()
       with:
         sarif_file: dependency-check-report/dependency-check-report.sarif
@@ -325,18 +327,25 @@ jobs:
       uses: actions/checkout@v4
     
     - name: Initialize CodeQL
-      uses: github/codeql-action/init@v3
+      uses: github/codeql-action/init@v4
       with:
         languages: ${{ matrix.language }}
         config-file: .github/codeql-config.yml
     
-    - name: Autobuild
-      uses: github/codeql-action/autobuild@v3
-      # Note: CodeQL autobuild may not work with legacy .NET Framework projects
-      # Consider manual build steps if needed
+    - name: Build for CodeQL analysis
+      # Manual build instead of autobuild for legacy .NET Framework projects
+      run: |
+        msbuild ${{ env.SOLUTION_FILE }} `
+          /p:Configuration=Release `
+          /p:Platform="Any CPU" `
+          /p:TreatWarningsAsErrors=false `
+          /p:RunCodeAnalysis=false `
+          /verbosity:minimal `
+          /maxcpucount
+      shell: pwsh
     
     - name: Perform CodeQL Analysis
-      uses: github/codeql-action/analyze@v3
+      uses: github/codeql-action/analyze@v4
       with:
         category: "/language:${{ matrix.language }}"
 

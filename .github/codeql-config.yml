@@ -79,6 +79,5 @@ compiler-options:
   - "/reference:PresentationFramework.dll"
   - "/reference:System.Xaml.dll"
 
-# Build command for CodeQL (legacy MSBuild)
-build-command: |
-  msbuild StockSharp.sln /p:Configuration=Release /p:Platform="Any CPU" /verbosity:quiet /maxcpucount
+# Note: Build is handled manually in CI workflow (not using autobuild)
+# due to legacy .NET Framework project structure

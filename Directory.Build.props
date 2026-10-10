@@ -138,11 +138,11 @@
     </Reference>
   </ItemGroup>
 
-  <!-- Common project references -->
+  <!-- Common project references (exclude self-references to avoid circular dependencies) -->
   <ItemGroup>
-    <ProjectReference Include="$(MSBuildThisFileDirectory)Localization\Localization.csproj" Condition="Exists('$(MSBuildThisFileDirectory)Localization\Localization.csproj')" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)Logging\Logging.csproj" Condition="Exists('$(MSBuildThisFileDirectory)Logging\Logging.csproj')" />
-    <ProjectReference Include="$(MSBuildThisFileDirectory)Messages\Messages.csproj" Condition="Exists('$(MSBuildThisFileDirectory)Messages\Messages.csproj')" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Localization\Localization.csproj" Condition="Exists('$(MSBuildThisFileDirectory)Localization\Localization.csproj') And '$(MSBuildProjectName)' != 'Localization'" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Logging\Logging.csproj" Condition="Exists('$(MSBuildThisFileDirectory)Logging\Logging.csproj') And '$(MSBuildProjectName)' != 'Logging'" />
+    <ProjectReference Include="$(MSBuildThisFileDirectory)Messages\Messages.csproj" Condition="Exists('$(MSBuildThisFileDirectory)Messages\Messages.csproj') And '$(MSBuildProjectName)' != 'Messages'" />
   </ItemGroup>
 
 </Project>
