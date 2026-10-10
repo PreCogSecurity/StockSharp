@@ -45,7 +45,7 @@
 					<TextBlock HorizontalAlignment="Right">
 						<Run Text="{x:Static loc:LocalizedStrings.Password}" />:
 					</TextBlock>
-                    <PasswordBox x:Name="Password" Width="70" Password="quik" VerticalContentAlignment="Center"/>
+                    <PasswordBox x:Name="Password" Width="70" Password="changeme" VerticalContentAlignment="Center"/>
                 </StackPanel>
                 <CheckBox x:Name="AllSecurities" Content="{x:Static loc:LocalizedStrings.XamlStr177}" IsChecked="True"/>
             </StackPanel>

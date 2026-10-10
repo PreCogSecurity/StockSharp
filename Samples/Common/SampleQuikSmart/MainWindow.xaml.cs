@@ -115,32 +115,32 @@ namespace SampleQuikSmart
 					Connector = InitReconnectionSettings(new Connector());
 
 					// добавляем подключения к SmartCOM и Quik
-					var quikTs = new LuaFixTransactionMessageAdapter(Connector.TransactionIdGenerator)
-					{
-						Login = "quik",
-						Password = "quik".To<SecureString>(),
-						Address = QuikTrader.DefaultLuaAddress,
-						TargetCompId = "StockSharpTS",
-						SenderCompId = "quik",
-						ExchangeBoard = ExchangeBoard.Forts,
-						Version = FixVersions.Fix44_Lua,
-						RequestAllPortfolios = true,
-						MarketData = FixMarketData.None,
-						TimeZone = TimeHelper.Moscow
-					};
-					var quikMd = new FixMessageAdapter(Connector.TransactionIdGenerator)
-					{
-						Login = "quik",
-						Password = "quik".To<SecureString>(),
-						Address = QuikTrader.DefaultLuaAddress,
-						TargetCompId = "StockSharpMD",
-						SenderCompId = "quik",
-						ExchangeBoard = ExchangeBoard.Forts,
-						Version = FixVersions.Fix44_Lua,
-						RequestAllSecurities = true,
-						MarketData = FixMarketData.MarketData,
-						TimeZone = TimeHelper.Moscow
-					};
+var quikTs = new LuaFixTransactionMessageAdapter(Connector.TransactionIdGenerator)
+				{
+					Login = "quik",
+					Password = "changeme".To<SecureString>(), // Default placeholder - configure in UI
+					Address = QuikTrader.DefaultLuaAddress,
+					TargetCompId = "StockSharpTS",
+					SenderCompId = "quik",
+					ExchangeBoard = ExchangeBoard.Forts,
+					Version = FixVersions.Fix44_Lua,
+					RequestAllPortfolios = true,
+					MarketData = FixMarketData.None,
+					TimeZone = TimeHelper.Moscow
+				};
+				var quikMd = new FixMessageAdapter(Connector.TransactionIdGenerator)
+				{
+					Login = "quik",
+					Password = "changeme".To<SecureString>(), // Default placeholder - configure in UI
+					Address = QuikTrader.DefaultLuaAddress,
+					TargetCompId = "StockSharpMD",
+					SenderCompId = "quik",
+					ExchangeBoard = ExchangeBoard.Forts,
+					Version = FixVersions.Fix44_Lua,
+					RequestAllSecurities = true,
+					MarketData = FixMarketData.MarketData,
+					TimeZone = TimeHelper.Moscow
+				};
 					quikMd.RemoveTransactionalSupport();
 
 					Connector.Adapter.InnerAdapters[quikMd] = 1;

@@ -27,7 +27,7 @@
 			<TextBox x:Name="Login" Text="LWW1LPSL" Width="70" />
 
 			<TextBlock HorizontalAlignment="Right"><Run Text="{x:Static loc:LocalizedStrings.Password}" />:</TextBlock>
-			<PasswordBox x:Name="Password" Password="I0BJRR" Width="100" />
+			<PasswordBox x:Name="Password" Password="changeme" Width="100" />
 
             <Label Content="{x:Static loc:LocalizedStrings.XamlStr651}" HorizontalAlignment="Right" />
 			<smartCom:SmartComAddressComboBox x:Name="Address" SelectedIndex="1" />
