@@ -1,0 +1,87 @@
+# Gitleaks Configuration for StockSharp
+# https://github.com/gitleaks/gitleaks
+
+[allowlist]
+description = "Global allowlist for false positives"
+paths = [
+  # Allow Microsoft public key tokens (false positives)
+  "(?i)b03f5f7f11d50a3a",
+  "(?i)B03F5F7F11D50A3A",
+  
+  # Allow test/sample default passwords (these are sample applications, not production secrets)
+  "(?i)password\s*=\s*[\"']quik[\"']",
+  "(?i)password\s*=\s*[\"']I0BJRR[\"']",
+  
+  # Allow connection strings with placeholders
+  "(?i)connectionstring\s*=\s*[\"'][^\"']*%Documents%[^\"']*[\"']",
+  
+  # Allow SecureString property bindings in XAML (not actual secrets)
+  "Secret=\"\{Binding.*\}",
+  "Secret=\"\{Binding ElementName=.*Path=.*Password.*\}",
+]
+
+# Rules to extend or override
+[[rules]]
+id = "generic-api-key"
+description = "Generic API Key detection"
+regex = '''(?i)(?:api[_-]?key|apikey)\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?'''
+tags = ["key", "api"]
+entropy = 3.5
+
+[[rules]]
+id = "generic-secret"
+description = "Generic Secret detection"
+regex = '''(?i)(?:secret|password|token)\s*[:=]\s*["']?[a-zA-Z0-9_\-]{20,}["']?'''
+tags = ["secret", "password", "token"]
+entropy = 3.5
+
+# Disable noisy rules for legacy codebase
+[[rules]]
+id = "slack-webhook"
+disabled = true
+
+[[rules]]
+id = "slack-token"
+disabled = true
+
+[[rules]]
+id = "github-pat"
+disabled = true
+
+[[rules]]
+id = "gitlab-pat"
+disabled = true
+
+[[rules]]
+id = "bitbucket-app-password"
+disabled = true
+
+# Path exclusions
+[allowlist]
+paths = [
+  # Exclude sample applications (contain demo credentials)
+  "Samples/**",
+  
+  # Exclude documentation
+  "Documentation/**",
+  
+  # Exclude references/third-party
+  "References/**",
+  
+  # Exclude build outputs
+  "**/bin/**",
+  "**/obj/**",
+  "**/packages/**",
+  
+  # Exclude generated files
+  "**/*.Designer.cs",
+  "**/*.Generated.cs",
+  
+  # Exclude AssemblyInfo files
+  "**/AssemblyInfo.cs",
+  "**/StockSharpAssemblyInfo.cs",
+  
+  # Exclude XAML files with SecureString bindings (false positives)
+  "**/PropertyGridEx.xaml",
+  "**/ProxySettingsEditor.xaml",
+]

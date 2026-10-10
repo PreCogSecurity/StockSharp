@@ -56,7 +56,7 @@ namespace StockSharp.Quik
 			_luaTransactionAdapter = new LuaFixTransactionMessageAdapter(TransactionIdGenerator)
 			{
 				Login = "quik",
-				Password = "quik".To<SecureString>(),
+				Password = "changeme".To<SecureString>(), // Default placeholder - configure via LuaPassword property
 				Address = DefaultLuaAddress,
 				TargetCompId = "StockSharpTS",
 				SenderCompId = "quik",
@@ -70,7 +70,7 @@ namespace StockSharp.Quik
 			_luaMarketDataAdapter = new FixMessageAdapter(TransactionIdGenerator)
 			{
 				Login = "quik",
-				Password = "quik".To<SecureString>(),
+				Password = "changeme".To<SecureString>(), // Default placeholder - configure via LuaPassword property
 				Address = DefaultLuaAddress,
 				TargetCompId = "StockSharpMD",
 				SenderCompId = "quik",

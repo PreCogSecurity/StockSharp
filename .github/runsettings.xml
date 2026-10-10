@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- VSTest runsettings for StockSharp -->
+<RunSettings>
+  <!-- General test run configuration -->
+  <RunConfiguration>
+    <!-- Target framework version -->
+    <TargetFrameworkVersion>Framework40</TargetFrameworkVersion>
+    
+    <!-- Platform (x86, x64, ARM) -->
+    <TargetPlatform>x64</TargetPlatform>
+    
+    <!-- Test session timeout (ms) -->
+    <TestSessionTimeout>120000</TestSessionTimeout>
+    
+    <!-- Maximum degree of parallelism for test execution -->
+    <MaxCpuCount>4</MaxCpuCount>
+    
+    <!-- Results directory -->
+    <ResultsDirectory>.\TestResults</ResultsDirectory>
+    
+    <!-- Treat test adapter warnings as errors -->
+    <TreatTestAdapterWarningsAsErrors>false</TreatTestAdapterWarningsAsErrors>
+    
+    <!-- Enable code coverage -->
+    <EnableCodeCoverage>false</EnableCodeCoverage>
+  </RunConfiguration>
+
+  <!-- MSTest adapter settings -->
+  <MSTest>
+    <!-- Capture trace output -->
+    <CaptureTraceOutput>true</CaptureTraceOutput>
+    
+    <!-- Delete deployment directory after test run -->
+    <DeleteDeploymentDirectoryAfterTestRunCompletion>true</DeleteDeploymentDirectoryAfterTestRunCompletion>
+    
+    <!-- Deployment items -->
+    <DeploymentEnabled>true</DeploymentEnabled>
+    
+    <!-- In-proc mode for faster execution -->
+    <InProcMode>true</InProcMode>
+    
+    <!-- Map inconclusive to failed -->
+    <MapInconclusiveToFailed>false</MapInconclusiveToFailed>
+    
+    <!-- Settings file for MSTest -->
+    <SettingsFile></SettingsFile>
+  </MSTest>
+
+  <!-- NUnit adapter settings (if used) -->
+  <NUnit>
+    <!-- Number of test workers for parallel execution -->
+    <NumberOfTestWorkers>4</NumberOfTestWorkers>
+    
+    <!-- Randomize test order -->
+    <Randomize>false</Randomize>
+    
+    <!-- Seed for randomization -->
+    <RandomSeed>0</RandomSeed>
+    
+    <!-- Work directory -->
+    <WorkDirectory>.\TestResults</WorkDirectory>
+  </NUnit>
+
+  <!-- xUnit adapter settings (if used) -->
+  <xUnit>
+    <!-- Parallelize test collections -->
+    <ParallelizeTestCollections>true</ParallelizeTestCollections>
+    
+    <!-- Max parallel threads -->
+    <MaxParallelThreads>4</MaxParallelThreads>
+    
+    <!-- Diagnostic messages -->
+    <DiagnosticMessages>false</DiagnosticMessages>
+  </xUnit>
+
+  <!-- Code coverage settings -->
+  <CodeCoverage>
+    <!-- Module paths to include in coverage -->
+    <ModulePaths>
+      <Include>
+        <ModulePath>.*StockSharp\.(Algo|BusinessEntities|Messages|Connectors|Algo\.Strategies|Algo\.History|Logging|Localization|Community|Alerts|Hydra|Xaml).*\.dll$</ModulePath>
+      </Include>
+      <Exclude>
+        <ModulePath>.*StockSharp\.(Samples|Anywhere|Studio|Documentation).*\.dll$</ModulePath>
+        <ModulePath>.*\.Tests\.dll$</ModulePath>
+        <ModulePath>.*Test.*\.dll$</ModulePath>
+        <ModulePath>.*Ecng\..*\.dll$</ModulePath>
+        <ModulePath>.*MathNet\..*\.dll$</ModulePath>
+        <ModulePath>.*AWSSDK\..*\.dll$</ModulePath>
+        <ModulePath>.*Antlr3\..*\.dll$</ModulePath>
+        <ModulePath>.*NCalc\.dll$</ModulePath>
+        <ModulePath>.*MoreLinq\.dll$</ModulePath>
+        <ModulePath>.*Xceed\..*\.dll$</ModulePath>
+        <ModulePath>.*SciChart\..*\.dll$</ModulePath>
+      </Exclude>
+    </ModulePaths>
+    
+    <!-- Attributes to exclude from coverage -->
+    <Attributes>
+      <Exclude>
+        <Attribute>System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute</Attribute>
+        <Attribute>System.Runtime.CompilerServices.CompilerGeneratedAttribute</Attribute>
+      </Exclude>
+    </Attributes>
+    
+    <!-- Functions to exclude -->
+    <Functions>
+      <Exclude>
+        <Function>.*\.ctor$</Function>
+        <Function>.*\.GetHashCode$</Function>
+        <Function>.*\.ToString$</Function>
+        <Function>.*\.Equals$</Function>
+      </Exclude>
+    </Functions>
+    
+    <!-- Use verbose output -->
+    <Verbose>false</Verbose>
+  </CodeCoverage>
+
+  <!-- Data collectors -->
+  <DataCollectors>
+    <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Configuration>
+        <CodeCoverage>
+          <ModulePaths>
+            <Include>
+              <ModulePath>.*StockSharp\.(Algo|BusinessEntities|Messages|Connectors|Algo\.Strategies|Algo\.History|Logging|Localization|Community|Alerts|Hydra|Xaml).*\.dll$</ModulePath>
+            </Include>
+          </ModulePaths>
+        </CodeCoverage>
+      </Configuration>
+    </DataCollector>
+  </DataCollectors>
+
+  <!-- Logger settings -->
+  <LoggerRunSettings>
+    <Loggers>
+      <!-- Console logger with normal verbosity -->
+      <Logger friendlyName="console" enabled="True">
+        <Configuration>
+          <Verbosity>normal</Verbosity>
+        </Configuration>
+      </Logger>
+      
+      <!-- TRX logger for results file -->
+      <Logger friendlyName="trx" enabled="True">
+        <Configuration>
+          <LogFileName>test-results.trx</LogFileName>
+        </Configuration>
+      </Logger>
+    </Loggers>
+  </LoggerRunSettings>
+</RunSettings>

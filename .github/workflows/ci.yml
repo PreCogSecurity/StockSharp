@@ -1,0 +1,411 @@
+name: CI Build and Security Scan
+
+on:
+  push:
+    branches: [ main, master, develop ]
+  pull_request:
+    branches: [ main, master, develop ]
+  schedule:
+    # Run weekly security scan on Sundays at 3 AM UTC
+    - cron: '0 3 * * 0'
+
+env:
+  SOLUTION_FILE: StockSharp.sln
+  CONFIGURATION: Release
+  DOTNET_VERSION: '4.8'  # Target framework for build tools
+
+jobs:
+  build:
+    name: Build (${{ matrix.configuration }})
+    runs-on: windows-latest
+    timeout-minutes: 60
+    
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for version detection
+    
+    - name: Install .NET Framework targeting packs
+      run: |
+        # Install .NET Framework 4.0 and 4.5.1 targeting packs for legacy project support
+        choco install netfx-4.0-devpack netfx-4.5.1-devpack -y --no-progress
+      shell: pwsh
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      with:
+        msbuild-architecture: x64
+    
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+      with:
+        nuget-version: '6.x'
+    
+    - name: Restore NuGet packages
+      run: |
+        nuget restore ${{ env.SOLUTION_FILE }} -Verbosity quiet
+      shell: pwsh
+    
+    - name: Build solution
+      run: |
+        msbuild ${{ env.SOLUTION_FILE }} `
+          /p:Configuration=${{ matrix.configuration }} `
+          /p:Platform="Any CPU" `
+          /p:TreatWarningsAsErrors=true `
+          /p:RunCodeAnalysis=true `
+          /p:GenerateDocumentationFile=true `
+          /verbosity:minimal `
+          /maxcpucount
+      shell: pwsh
+    
+    - name: Verify build outputs
+      run: |
+        $outputs = Get-ChildItem -Recurse -Path "bin\${{ matrix.configuration }}" -Filter "*.dll" -ErrorAction SilentlyContinue
+        if (-not $outputs) {
+          Write-Error "No build outputs found!"
+          exit 1
+        }
+        Write-Host "Found $($outputs.Count) assemblies"
+        $outputs | Select-Object Name, @{N='SizeKB';E={[math]::Round($_.Length/1KB,1)}}, LastWriteTime
+      shell: pwsh
+
+  stylecop:
+    name: StyleCop Analysis
+    runs-on: windows-latest
+    timeout-minutes: 30
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Install .NET Framework targeting packs
+      run: |
+        # Install .NET Framework 4.0 and 4.5.1 targeting packs for legacy project support
+        choco install netfx-4.0-devpack netfx-4.5.1-devpack -y --no-progress
+      shell: pwsh
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      with:
+        msbuild-architecture: x64
+    
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+      with:
+        nuget-version: '6.x'
+    
+    - name: Restore NuGet packages
+      run: |
+        nuget restore ${{ env.SOLUTION_FILE }} -Verbosity quiet
+      shell: pwsh
+    
+    - name: Run StyleCop Analyzers
+      run: |
+        msbuild ${{ env.SOLUTION_FILE }} `
+          /p:Configuration=Release `
+          /p:Platform="Any CPU" `
+          /p:RunCodeAnalysis=true `
+          /p:CodeAnalysisRuleSet=stylecop.ruleset `
+          /target:Rebuild `
+          /verbosity:quiet `
+          /maxcpucount
+      shell: pwsh
+      continue-on-error: true  # Don't fail build on style issues initially
+
+  security-scan:
+    name: Security Scan
+    runs-on: windows-latest
+    timeout-minutes: 45
+    permissions:
+      security-events: write
+      contents: read
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Install .NET Framework targeting packs
+      run: |
+        # Install .NET Framework 4.0 and 4.5.1 targeting packs for legacy project support
+        choco install netfx-4.0-devpack netfx-4.5.1-devpack -y --no-progress
+      shell: pwsh
+    
+    - name: Run Gitleaks (secret detection)
+      uses: gitleaks/gitleaks-action@v2
+      # Config via .gitleaks.toml in repo root
+      # License required for organizations - using community mode
+      env:
+        GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+      continue-on-error: true  # Don't fail if license not configured
+    
+    - name: Run .NET Security Code Scan (Roslyn Analyzers)
+      run: |
+        # Install security analyzers
+        dotnet tool install --global Microsoft.CodeAnalysis.NetAnalyzers --version 8.0.0 2>$null || true
+        dotnet tool install --global SonarAnalyzer.CSharp --version 9.32.0.97167 2>$null || true
+        
+        # Note: Full Roslyn analyzer scan requires SDK-style projects
+        # This is a legacy .NET Framework codebase, so we use alternative approaches
+      shell: pwsh
+      continue-on-error: true
+    
+    - name: Check for hardcoded secrets (custom patterns)
+      run: |
+        $patterns = @(
+          'password\s*=\s*["''][^"'']+["'']',
+          'api[_-]?key\s*=\s*["''][^"'']+["'']',
+          'secret\s*=\s*["''][^"'']+["'']',
+          'token\s*=\s*["''][^"'']+["'']',
+          'connectionstring\s*=\s*["''][^"'']+["'']'
+        )
+        
+        $files = Get-ChildItem -Recurse -File -Include *.cs,*.config,*.xml,*.json,*.xaml,*.csproj `
+          | Where-Object { $_.FullName -notmatch '\\.(git|vs|bin|obj|packages)\\'}
+        
+        $found = $false
+        foreach ($file in $files) {
+          $content = Get-Content $file.FullName -Raw
+          foreach ($pattern in $patterns) {
+            $matches = [regex]::Matches($content, $pattern, 'IgnoreCase')
+            if ($matches.Count -gt 0) {
+              Write-Warning "Potential secret in $($file.FullName): $($matches.Value)"
+              $found = $true
+            }
+          }
+        }
+        
+        if ($found) {
+          Write-Error "Hardcoded secrets detected! Review the warnings above."
+          exit 1
+        } else {
+          Write-Host "No hardcoded secrets detected."
+        }
+      shell: pwsh
+    
+    - name: Check for debug/weak configurations
+      run: |
+        $issues = @()
+        
+        # Check for debug builds in release configs
+        $csprojs = Get-ChildItem -Recurse -Filter *.csproj
+        foreach ($proj in $csprojs) {
+          $xml = [xml](Get-Content $proj.FullName)
+          $releaseProps = $xml.Project.PropertyGroup | Where-Object { $_.Condition -like "*Release*" }
+          foreach ($prop in $releaseProps) {
+            if ($prop.DebugType -and $prop.DebugType -ne 'none' -and $prop.DebugType -ne 'portable') {
+              $issues += "Project $($proj.FullName): Release build has DebugType='$($prop.DebugType)' (should be 'portable' or 'none')"
+            }
+            if ($prop.Optimize -and $prop.Optimize -ne 'true') {
+              $issues += "Project $($proj.FullName): Release build has Optimize='$($prop.Optimize)' (should be 'true')"
+            }
+          }
+        }
+        
+        if ($issues.Count -gt 0) {
+          Write-Warning "Build configuration issues found:"
+          $issues | ForEach-Object { Write-Warning $_ }
+        } else {
+          Write-Host "Build configurations look secure."
+        }
+      shell: pwsh
+
+  dependency-check:
+    name: Dependency Vulnerability Check
+    runs-on: ubuntu-latest  # Container action only supports Linux
+    timeout-minutes: 60
+    permissions:
+      security-events: write
+      contents: read
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Run OWASP Dependency Check
+      uses: dependency-check/Dependency-Check_Action@main
+      with:
+        project: 'StockSharp'
+        path: '.'
+        format: 'HTML,JSON,SARIF'
+        out: 'dependency-check-report'
+        args: >
+          --failOnCVSS 7
+          --suppression .github/dependency-check-suppressions.xml
+      continue-on-error: true
+    
+    - name: Upload Dependency Check Report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: dependency-check-report
+        path: dependency-check-report/
+        retention-days: 30
+    
+    - name: Upload SARIF to GitHub Security
+      uses: github/codeql-action/upload-sarif@v4
+      if: always() && hashFiles('dependency-check-report/dependency-check-report.sarif') != ''
+      with:
+        sarif_file: dependency-check-report/dependency-check-report.sarif
+        category: dependency-check
+
+  test:
+    name: Unit Tests
+    runs-on: windows-latest
+    timeout-minutes: 45
+    needs: build
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Install .NET Framework targeting packs
+      run: |
+        # Install .NET Framework 4.0 and 4.5.1 targeting packs for legacy project support
+        choco install netfx-4.0-devpack netfx-4.5.1-devpack -y --no-progress
+      shell: pwsh
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      with:
+        msbuild-architecture: x64
+    
+    - name: Setup NuGet
+      uses: NuGet/setup-nuget@v2
+      with:
+        nuget-version: '6.x'
+    
+    - name: Restore NuGet packages
+      run: |
+        nuget restore ${{ env.SOLUTION_FILE }} -Verbosity quiet
+      shell: pwsh
+    
+    - name: Build solution
+      run: |
+        msbuild ${{ env.SOLUTION_FILE }} `
+          /p:Configuration=Release `
+          /p:Platform="Any CPU" `
+          /verbosity:quiet `
+          /maxcpucount
+      shell: pwsh
+    
+    - name: Discover and run tests
+      run: |
+        # Find test assemblies
+        $testDlls = Get-ChildItem -Recurse -Path "bin\Release" -Filter "*Test*.dll" -ErrorAction SilentlyContinue
+        $testDlls += Get-ChildItem -Recurse -Path "bin\Release" -Filter "*.Tests.dll" -ErrorAction SilentlyContinue
+        
+        if ($testDlls.Count -eq 0) {
+          Write-Warning "No test assemblies found. This is expected for legacy codebase without tests."
+          Write-Host "##vso[task.setvariable variable=HAS_TESTS]false"
+        } else {
+          Write-Host "Found $($testDlls.Count) test assembly(ies)"
+          $testDlls | ForEach-Object { Write-Host "  - $($_.FullName)" }
+          Write-Host "##vso[task.setvariable variable=HAS_TESTS]true"
+        }
+      shell: pwsh
+    
+    - name: Run VSTest (if tests exist)
+      if: env.HAS_TESTS == 'true'
+      run: |
+        $testDlls = Get-ChildItem -Recurse -Path "bin\Release" -Filter "*Test*.dll" -ErrorAction SilentlyContinue
+        $testDlls += Get-ChildItem -Recurse -Path "bin\Release" -Filter "*.Tests.dll" -ErrorAction SilentlyContinue
+        
+        vstest.console.exe $($testDlls.FullName -join ' ') `
+          /logger:"trx;LogFileName=test-results.trx" `
+          /logger:"console;verbosity=normal" `
+          /Settings:.github/runsettings.xml
+      shell: pwsh
+    
+    - name: Publish test results
+      uses: actions/upload-artifact@v4
+      if: always() && env.HAS_TESTS == 'true'
+      with:
+        name: test-results
+        path: '**/*.trx'
+        retention-days: 30
+
+  # CodeQL Analysis (requires GitHub Advanced Security)
+  codeql:
+    name: CodeQL Analysis
+    runs-on: windows-latest
+    timeout-minutes: 60
+    permissions:
+      security-events: write
+      contents: read
+    if: github.repository == 'PreCogSecurity/StockSharp'  # Only run on main repo, not forks
+    
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [csharp]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Install .NET Framework targeting packs
+      run: |
+        # Install .NET Framework 4.0 and 4.5.1 targeting packs for legacy project support
+        choco install netfx-4.0-devpack netfx-4.5.1-devpack -y --no-progress
+      shell: pwsh
+    
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
+      with:
+        msbuild-architecture: x64
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v4
+      with:
+        languages: ${{ matrix.language }}
+        config-file: .github/codeql-config.yml
+    
+    - name: Build for CodeQL analysis
+      # Manual build instead of autobuild for legacy .NET Framework projects
+      run: |
+        msbuild ${{ env.SOLUTION_FILE }} `
+          /p:Configuration=Release `
+          /p:Platform="Any CPU" `
+          /p:TreatWarningsAsErrors=false `
+          /p:RunCodeAnalysis=false `
+          /verbosity:minimal `
+          /maxcpucount
+      shell: pwsh
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v4
+      with:
+        category: "/language:${{ matrix.language }}"
+
+  # Summary job
+  summary:
+    name: Build Summary
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: [build, stylecop, security-scan, dependency-check, test]
+    if: always()
+    
+    steps:
+    - name: Check job statuses
+      run: |
+        echo "Build: ${{ needs.build.result }}"
+        echo "StyleCop: ${{ needs.stylecop.result }}"
+        echo "Security Scan: ${{ needs.security-scan.result }}"
+        echo "Dependency Check: ${{ needs.dependency-check.result }}"
+        echo "Tests: ${{ needs.test.result }}"
+        
+        # Fail if any required job failed
+        if [[ "${{ needs.build.result }}" != "success" ]] || \
+           [[ "${{ needs.security-scan.result }}" != "success" ]]; then
+          echo "Required checks failed!"
+          exit 1
+        fi
+        
+        echo "All required checks passed!"

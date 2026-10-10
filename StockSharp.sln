@@ -339,6 +339,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Anywhere", "Anywhere", "{AC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnywherePublic", "Anywhere\Anywhere\AnywherePublic.csproj", "{BDDB57FB-3404-48C8-B730-94B0957BBBD8}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockSharp.Tests", "Tests\StockSharp.Tests.csproj", "{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
